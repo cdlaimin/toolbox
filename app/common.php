@@ -1,12 +1,12 @@
 <?php
 // 应用公共文件
-use app\lib\Jwt;
+
 use app\model\User;
-use think\facade\Request;
-use think\facade\Session;
+use think\facade\Cache;
 use think\helper\Str;
 
 require dirname(__DIR__) . "/plugin/common.php";
+
 function template_path_get(): string
 {
     return app()->getRootPath() . config("view.view_dir_name") . '/index/' . config_get('global.template') . DIRECTORY_SEPARATOR;
@@ -21,30 +21,24 @@ function msg($status = "ok", $message = "success", $data = [])
     ]);
 }
 
+function success($data = [], $message = "success")
+{
+    return msg('ok', $message, $data);
+}
+
+function error($message = "error", $data = [])
+{
+    return msg('error', $message, $data);
+}
+
 function is_login()
 {
-    $user = get_user();
-    return $user !== null && !empty($user->id) && $user->isExists();
+    return User::isLogin();
 }
 
 function get_user()
 {
-    $user = Session::get("user");
-    if (empty($user)) {
-        $access_token = Request::header('Authorization');
-        if (!empty($access_token)) {
-            $resp = (new Jwt())->validate_token($access_token);
-            $user = (object)$resp['data'];
-        }
-    }
-
-    if (!empty($user->id)) {
-        $user = User::get($user->id);
-        if ($user->isExists()) {
-            return $user;
-        }
-    }
-    return User::visitor();
+    return User::getUser();
 }
 
 function get_username()
@@ -54,8 +48,7 @@ function get_username()
 
 function is_admin($user = null)
 {
-    $user = $user ?? get_user();
-    return $user !== null && !empty($user->id) && $user->id === 1 && $user->isExists();
+    return User::isAdmin();
 }
 
 
@@ -72,6 +65,14 @@ function get_master_path($path = '')
 function reset_opcache()
 {
     if (function_exists('opcache_reset')) opcache_reset();
+}
+
+function clear_cache($flag = false)
+{
+    Cache::clear();
+    if ($flag) {
+        reset_opcache();
+    }
 }
 
 function aoaostar_get($url, $headers = [])
@@ -376,12 +377,24 @@ function npm_cdn($file = '')
     return $config_get . $file;
 }
 
+function captcha_api()
+{
+    return (string)url('/api/captcha');
+}
+
+if (!function_exists('str_contains')) {
+    function str_contains($haystack, $needle) {
+        return $needle !== '' && mb_strpos($haystack, $needle) !== false;
+    }
+}
+
 if (!function_exists('str_starts_with')) {
     function str_starts_with($str, $start)
     {
         return (@substr_compare($str, $start, 0, strlen($start)) == 0);
     }
 }
+
 if (!function_exists('str_ends_with')) {
     function str_ends_with(string $haystack, string $needle): bool
     {
@@ -436,13 +449,27 @@ if (!function_exists('get_content_type')) {
             case 'js':
                 $mime_type = 'application/javascript';
                 break;
+            case 'svg':
+                $mime_type = 'image/svg+xml';
+                break;
             default:
                 $f_open = finfo_open(FILEINFO_MIME_TYPE);
                 $mime_type = finfo_file($f_open, $filename);
                 finfo_close($f_open);
         }
-
         return $mime_type;
+    }
+}
+
+if (!function_exists('avatar_cdn')) {
+
+    function avatar_cdn($str)
+    {
+        if (Str::contains($str, ['gitee.com'])) {
+            $url = preg_replace('#^(http(s?))?(://)#', '', $str);
+            return "https://i0.wp.com/$url";
+        }
+        return $str;
     }
 }
 

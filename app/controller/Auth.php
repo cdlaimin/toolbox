@@ -4,7 +4,6 @@
 namespace app\controller;
 
 
-use app\lib\oauth\OAuth;
 use app\model\User;
 use think\facade\Request;
 use think\facade\Session;
@@ -13,7 +12,7 @@ use think\helper\Str;
 
 class Auth extends Base
 {
-    private $instance = OAuth::class;
+    private $instance;
     private $mode;
     private $user;
 
@@ -47,7 +46,7 @@ class Auth extends Base
         return $this->instance->oauth();
     }
 
-    public function callback()
+    public function callback(): \think\response\View
     {
         $bind = Session::pull('BindAuth');
 
@@ -96,12 +95,15 @@ class Auth extends Base
                 'expire' => $instance->getExpire(),
             ]);
         }
+        if (!empty($user->error)){
+
+            return $this->callback_view('error', $user->error);
+        }
         return $this->callback_view('error', "登录失败，请重试");
     }
 
     private function callback_view($status, $message, $data = [])
     {
-
         View::assign('data', [
             'status' => $status,
             'message' => $message,

@@ -43,15 +43,16 @@ INSERT INTO `toolbox_config` VALUES (5, 'global.template', 'default', '2021-12-2
 INSERT INTO `toolbox_config` VALUES (6, 'global.foot_code', '\n            <div style=\"display: none\">\n                <script type=\"text/javascript\" src=\"https://s9.cnzz.com/z_stat.php?id=1280727911&web_id=1280727911\"></script>\n            </div>', '2021-12-22 21:34:41', '2022-09-05 15:50:47');
 INSERT INTO `toolbox_config` VALUES (7, 'global.admin_path', 'admin', '2021-12-22 18:31:59', '2022-09-05 16:38:45');
 INSERT INTO `toolbox_config` VALUES (8, 'global.secret_key', '8T7SHDiZFEY443f4GHicAmtxFsZw6FEi', '2022-09-03 13:42:20', '2022-09-09 09:55:09');
-INSERT INTO `toolbox_config` VALUES (9, 'cdn.cdnjs', 'https://cdn.staticfile.org', '2022-03-02 17:56:15', '2022-03-02 17:56:15');
-INSERT INTO `toolbox_config` VALUES (10, 'cdn.npm', 'https://npm.elemecdn.com', '2022-03-02 17:56:15', '2022-03-02 18:13:43');
-INSERT INTO `toolbox_config` VALUES (11, 'cloud.mirror', 'https://github.com/{owner}/{repo}/raw/{branch}/{path}', '2021-12-22 18:31:59', '2021-12-22 18:31:59');
-INSERT INTO `toolbox_config` VALUES (12, 'oauth.github.enable', '1', '2021-12-22 18:31:59', '2021-12-22 18:31:59');
-INSERT INTO `toolbox_config` VALUES (13, 'oauth.github.client_id', '', '2021-12-22 18:31:59', '2021-12-22 18:31:59');
-INSERT INTO `toolbox_config` VALUES (14, 'oauth.gitee.client_secret', '', '2021-12-22 18:31:59', '2021-12-22 18:31:59');
-INSERT INTO `toolbox_config` VALUES (15, 'oauth.gitee.enable', '0', '2021-12-22 18:31:59', '2022-09-09 22:28:34');
-INSERT INTO `toolbox_config` VALUES (16, 'oauth.gitee.client_id', '', '2022-09-09 11:37:42', '2022-09-09 11:37:48');
-INSERT INTO `toolbox_config` VALUES (17, 'oauth.github.client_secret', '', '2021-12-22 18:31:59', '2021-12-22 18:31:59');
+INSERT INTO `toolbox_config` VALUES (9, 'global.chat', 'https://t.me/aoaostar', '2022-09-03 13:42:20', '2022-09-09 09:55:09');
+INSERT INTO `toolbox_config` VALUES (10, 'cdn.cdnjs', 'https://cdn.staticfile.org', '2022-03-02 17:56:15', '2022-03-02 17:56:15');
+INSERT INTO `toolbox_config` VALUES (11, 'cdn.npm', 'https://npm.elemecdn.com', '2022-03-02 17:56:15', '2022-03-02 18:13:43');
+INSERT INTO `toolbox_config` VALUES (12, 'cloud.mirror', 'https://github.com/{owner}/{repo}/raw/{branch}/{path}', '2021-12-22 18:31:59', '2021-12-22 18:31:59');
+INSERT INTO `toolbox_config` VALUES (13, 'oauth.github.enable', '1', '2021-12-22 18:31:59', '2021-12-22 18:31:59');
+INSERT INTO `toolbox_config` VALUES (14, 'oauth.github.client_id', '', '2021-12-22 18:31:59', '2021-12-22 18:31:59');
+INSERT INTO `toolbox_config` VALUES (15, 'oauth.gitee.client_secret', '', '2021-12-22 18:31:59', '2021-12-22 18:31:59');
+INSERT INTO `toolbox_config` VALUES (16, 'oauth.gitee.enable', '0', '2021-12-22 18:31:59', '2022-09-09 22:28:34');
+INSERT INTO `toolbox_config` VALUES (17, 'oauth.gitee.client_id', '', '2022-09-09 11:37:42', '2022-09-09 11:37:48');
+INSERT INTO `toolbox_config` VALUES (18, 'oauth.github.client_secret', '', '2021-12-22 18:31:59', '2021-12-22 18:31:59');
 
 -- ----------------------------
 -- Table structure for toolbox_migration
@@ -88,18 +89,19 @@ CREATE TABLE `toolbox_plugin`  (
   `enable` int(11) NOT NULL DEFAULT 1 COMMENT '是否启用',
   `request_count` int(11) NOT NULL DEFAULT 0 COMMENT '接口请求次数',
   `category_id` int(11) NOT NULL DEFAULT 0 COMMENT '分类',
-  `template` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'default',
+  `template` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'default' COMMENT '模板',
+  `permission` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'visitor' COMMENT '权限',
   `create_time` datetime NOT NULL COMMENT '安装时间',
   `update_time` datetime NOT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `alias`(`alias`) USING BTREE,
   UNIQUE INDEX `class`(`class`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 54 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of toolbox_plugin
 -- ----------------------------
-INSERT INTO `toolbox_plugin` VALUES (1, 'Hello，Pluto', 'If you see this message, it means that your program is running properly.', 'example', 'aoaostar_com\\example', '{}', 'v1.0', 0, 1, 0, 0, 'default', '2022-09-06 20:43:33', '2022-09-10 23:34:01');
+INSERT INTO `toolbox_plugin` VALUES (1, 'Hello，Pluto', 'If you see this message, it means that your program is running properly.', 'example', 'aoaostar_com\\example', '{}', 'v1.0', 0, 1, 0, 0, 'default', 'visitor', '2022-09-10 23:34:01', '2022-09-10 23:34:01');
 
 -- ----------------------------
 -- Table structure for toolbox_request

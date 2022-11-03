@@ -2,7 +2,6 @@
 
 namespace app\controller;
 
-
 use think\facade\View;
 
 class Plugin extends Base
@@ -13,22 +12,21 @@ class Plugin extends Base
         $method = plugin_method_get();
         $class = '\\plugin\\' . plugin_class_get($alias) . '\\App';
         if (!class_exists($class)) {
-            return msg("error", "该Api不存在");
+            return error('该Api不存在');
         }
         $app = new $class();
 
         if (!method_exists($app, $method)) {
-            return msg("error", "该Api不存在该方法");
+            return error('该Api不存在该方法');
         }
+
         return $app->$method();
     }
 
     public function static()
     {
-        $alias = plugin_alias_get();
-        $class_get = plugin_class_get($alias);
-        $filename = plugin_path_get() . substr($class_get, 0, strpos($class_get, '\\')) . '/' . request()->pathinfo();
-
+        $pathinfo = request()->pathinfo();
+        $filename = plugin_path_get() . substr($pathinfo, strpos($pathinfo, '/'));
         if (!is_file($filename)) {
             abort(404, 'not found');
         }

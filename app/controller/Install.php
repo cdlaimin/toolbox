@@ -7,41 +7,42 @@ use app\lib\EnvOperation;
 use app\lib\ExecSQL;
 use PDO;
 use think\Exception;
-use think\facade\Cache;
 use think\facade\Request;
 use think\facade\Validate;
 use think\facade\View;
 
 class Install extends Base
 {
+    const PHP_VERSION = '7.2.5';
+    const MYSQL_VERSION = '5.7';
+    private $installed = true;
 
     public function __destruct()
     {
-        Cache::clear();
-        reset_opcache();
+        !$this->installed && clear_cache(true);
     }
 
     public function initialize()
     {
         // 检测是否已安装
-        if (file_exists(app()->getRootPath() . 'install.lock')) {
+        $this->installed = file_exists(app()->getRootPath() . 'install.lock');
+        if ($this->installed) {
             exit('你已安装成功，需要重新安装请删除 install.lock 文件');
         }
-        Cache::clear();
-        reset_opcache();
+        clear_cache(true);
     }
 
     public function index()
     {
         // 检查安装环境
         $requirements = [
-            'php_version' => PHP_VERSION >= '7.2.5',
+            'php_version' => PHP_VERSION >= self::PHP_VERSION,
             'pdo_mysql' => extension_loaded("pdo_mysql"),
 //            'zend_opcache' => extension_loaded("Zend OPcache"),
             'curl' => extension_loaded("curl"),
             'fileinfo' => extension_loaded("fileinfo"),
             'ziparchive' => class_exists("ZipArchive"),
-            'is_writable' => is_writable(app()->getRuntimePath()) && is_writable(app()->getRootPath() . 'public'),
+            'is_writable' => is_writable(app()->getRuntimePath()) && is_writable(app()->getRootPath() . 'plugin'),
         ];
         reset_opcache();
         $step = Request::param('step');
@@ -64,14 +65,19 @@ class Install extends Base
         ];
         $validate = Validate::rule($rules);
         if (!$validate->check($params)) {
-            return msg('error', $validate->getError());
+            return error($validate->getError());
         }
 
         $dsn = 'mysql:host=' . $params['hostname'] . ';dbname=' . $params['database'] . ';port=' . $params['hostport'] . ';charset=utf8';
         try {
-            new PDO($dsn, $params['username'], $params['password']);
+            if ((new PDO($dsn, $params['username'], $params['password']))->getAttribute(PDO::ATTR_SERVER_VERSION) < self::MYSQL_VERSION) {
+                throw new \Exception('MySQL版本必须大于' . self::MYSQL_VERSION);
+            }
         } catch (\Exception $e) {
-            return msg('error', $e->getMessage());
+            if ($e->getCode() === 1045) {
+                return error('数据库连接失败，请检查连接信息是否正确');
+            }
+            return error($e->getMessage());
         }
         try {
             $envFile = file_get_contents(app()->getRootPath() . '.env.example');
@@ -81,9 +87,9 @@ class Install extends Base
             }
             $envOperation->save();
         } catch (\Exception $e) {
-            return msg('error', $e->getMessage());
+            return error($e->getMessage());
         }
-        return msg();
+        return success();
     }
 
     public function init_data()
@@ -104,11 +110,11 @@ class Install extends Base
                 }
             }
         } catch (\Exception $e) {
-            return msg('error', $e->getMessage());
+            return error($e->getMessage());
         }
         //重置secret_key
         config_set('global.secret_key', md5(uniqid()));
-        return msg();
+        return success();
     }
 
     public function oauth()
@@ -120,7 +126,7 @@ class Install extends Base
         ];
         $validate = Validate::rule($rules);
         if (!$validate->check($params)) {
-            return msg('error', $validate->getError());
+            return error($validate->getError());
         }
         foreach (array_keys($rules) as $v) {
             $keys = explode('.', $v);
@@ -129,14 +135,14 @@ class Install extends Base
                 $value = $value[$key];
             }
             if (!config_set("oauth.$v", $value)) {
-                return msg('error', "[$v]保存失败");
+                return error("[$v]保存失败");
             }
         }
         file_put_contents(app()->getRootPath() . 'install.lock', format_date());
         @aoaostar_get(base64_decode('aHR0cHM6Ly90b29sLWNsb3VkLmFvYW9zdGFyLmNvbS9vcGVuL2luc3RhbGw='), [
             'referer:' . Request::domain(true),
         ]);
-        return msg();
+        return success();
     }
 
 }
